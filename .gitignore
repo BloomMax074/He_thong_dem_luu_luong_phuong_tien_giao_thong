@@ -28,7 +28,6 @@ wheels/
 *.engine
 
 # Video files
-*.mp4
 *.avi
 *.mov
 *.mkv
