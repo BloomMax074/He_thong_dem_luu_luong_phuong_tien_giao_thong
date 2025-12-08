@@ -148,4 +148,5 @@ He_thong_dem_luu_luong_phuong_tien_giao_thong/
 - Hiển thị: vẽ line, bbox theo màu lớp, label (class, ID, conf, direction), thống kê tổng/đi lên/đi xuống.
 - Hiệu năng: FP16 khi có GPU; giảm FPS hiển thị (10/15/30) để UI mượt; preprocessing để phát lại nhanh.
 
-
+### A7. Bộ dữ liệu sử dụng
+- Link: "https://universe.roboflow.com/fsmvu/street-view-gdogo".
