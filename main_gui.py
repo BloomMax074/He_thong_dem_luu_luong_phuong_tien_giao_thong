@@ -124,7 +124,7 @@ class VehicleCountingApp:
                                    bg='#3c3c3c', fg='white',
                                    troughcolor='#555555',
                                    command=self.update_line_position)
-        self.line_scale.set(0.5)
+        self.line_scale.set(0.7)
         self.line_scale.pack(pady=5)
         
         # Separator
@@ -249,7 +249,7 @@ class VehicleCountingApp:
                     use_half_precision=True
                 )
             except Exception as e:
-                messagebox.showerror("Lỗi", f"Không thể tải model YOLOv11!\n{str(e)}")
+                messagebox.showerror("Lỗi", f"Không thể tải model!\n{str(e)}")
                 return
         else:
             # Cập nhật cài đặt hiệu năng
@@ -420,7 +420,7 @@ class VehicleCountingApp:
                     use_half_precision=True
                 )
             except Exception as e:
-                messagebox.showerror("Lỗi", f"Không thể tải model YOLOv11!\n{str(e)}")
+                messagebox.showerror("Lỗi", f"Không thể tải model!\n{str(e)}")
                 return
         
         # Tạo đường dẫn file output

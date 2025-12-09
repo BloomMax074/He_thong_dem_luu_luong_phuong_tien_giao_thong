@@ -6,13 +6,13 @@ import time
 import torch
 
 class VehicleCounter:
-    def __init__(self, model_path='best.pt', line_position=0.5, 
+    def __init__(self, model_path='best.pt', line_position=0.7, 
                  inference_size=640, use_half_precision=True):
         """
         Khởi tạo hệ thống đếm phương tiện
         
         Args:
-            model_path: Đường dẫn đến file model YOLOv11
+            model_path: Đường dẫn đến file model đã được huấn luyện
             line_position: Vị trí đường đếm (0.0-1.0, tính từ trên xuống)
             inference_size: Kích thước frame để inference (nhỏ hơn = nhanh hơn, mặc định 640)
             use_half_precision: Sử dụng FP16 nếu GPU có sẵn (nhanh hơn ~2x)
@@ -226,8 +226,8 @@ class VehicleCounter:
         else:
             inference_frame = frame
         
-        # Chạy YOLOv11 với tracking - luôn chạy trên mọi frame
-        # QUAN TRỌNG: Không dùng imgsz parameter để YOLO tự xử lý kích thước
+        # Chạy YOLOv11 đã được huấn luyện với tracking - luôn chạy trên mọi frame
+        # QUAN TRỌNG: Không dùng imgsz parameter để mô hình tự xử lý kích thước
         # Boxes trả về sẽ theo kích thước inference_frame, sau đó chúng ta scale về gốc
         results = self.model.track(
             inference_frame, 
