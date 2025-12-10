@@ -258,7 +258,7 @@ class VehicleCountingApp:
         if self.counter is None:
             try:
                 self.counter = VehicleCounter(
-                    model_path='yolo11n.pt',
+                    model_path='models/yolo11n.pt',
                     line_position=self.line_scale.get(),
                     inference_size=self.inference_size,
                     use_half_precision=(device == 'cuda'),
@@ -438,7 +438,7 @@ class VehicleCountingApp:
         if self.counter is None:
             try:
                 self.counter = VehicleCounter(
-                    model_path='yolo11n.pt',
+                    model_path='models/yolo11n.pt',
                     line_position=self.line_scale.get(),
                     inference_size=self.inference_size,
                     use_half_precision=True
