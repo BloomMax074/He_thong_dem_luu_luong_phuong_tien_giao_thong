@@ -7,7 +7,8 @@ import torch
 
 class VehicleCounter:
     def __init__(self, model_path='yolo11n.pt', line_position=0.7, 
-                 inference_size=640, use_half_precision=True):
+                 inference_size=640, use_half_precision=True,
+                 inference_stride=1):
         """
         Khởi tạo hệ thống đếm phương tiện
         
@@ -16,16 +17,20 @@ class VehicleCounter:
             line_position: Vị trí đường đếm (0.0-1.0, tính từ trên xuống)
             inference_size: Kích thước frame để inference (nhỏ hơn = nhanh hơn, mặc định 640)
             use_half_precision: Sử dụng FP16 nếu GPU có sẵn (nhanh hơn ~2x)
+            inference_stride: Chỉ chạy inference mỗi N frame (CPU nên >1 để nhẹ hơn)
         """
         self.model = YOLO(model_path)
         
         # Tối ưu hóa model
         device = 'cuda' if torch.cuda.is_available() else 'cpu'
         self.device = device
+        # CPU không dùng FP16 để tránh overhead chuyển kiểu
         self.use_half = use_half_precision and device == 'cuda'
         
         # Thiết lập inference size (giảm để tăng tốc)
         self.inference_size = inference_size
+        # Giảm tần suất inference để nhẹ CPU
+        self.inference_stride = max(1, int(inference_stride))
         
         self.line_position = line_position  # Vị trí đường đếm (tỷ lệ chiều cao)
         self.tracks = defaultdict(dict)  # Lưu trữ tracking info

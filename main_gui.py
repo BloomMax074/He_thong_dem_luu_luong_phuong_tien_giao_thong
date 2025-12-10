@@ -5,6 +5,7 @@ from PIL import Image, ImageTk
 import threading
 import queue
 import os
+import torch
 from vehicle_counter import VehicleCounter
 
 class VehicleCountingApp:
@@ -23,9 +24,18 @@ class VehicleCountingApp:
         self.processed_video_path = None  # Đường dẫn video đã xử lý
         
         # Cấu hình hiệu năng
-        self.inference_size = 640  # Kích thước inference (có thể điều chỉnh)
+        # Ưu tiên tốc độ trên CPU: mặc định 320
+        self.inference_size = 320
         self.target_fps = 30  # FPS mục tiêu
         self.display_fps = 15  # FPS hiển thị (giảm để tăng tốc)
+        # Chỉ chạy inference mỗi N frame để giảm tải CPU (CPU=2, GPU=1)
+        self.inference_stride = 2
+        # Tối ưu hóa OpenCV trên CPU
+        cv2.setUseOptimized(True)
+        try:
+            cv2.setNumThreads(max(1, os.cpu_count() // 2))
+        except Exception:
+            pass
         
         # Queue cho frame processing
         self.frame_queue = queue.Queue(maxsize=2)
@@ -233,6 +243,11 @@ class VehicleCountingApp:
         # Lấy cài đặt hiệu năng
         self.inference_size = int(self.size_var.get())
         self.display_fps = int(self.fps_var.get())
+        # Nếu không có GPU, tăng stride để giảm số lần suy luận
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.inference_stride = 1 if device == 'cuda' else 2
+        # Trên CPU, giảm tần suất hiển thị để tránh nghẽn Tk
+        self.frame_skip_display_base = 30 if device == 'cuda' else 45
         
         # Nếu có video đã xử lý, sử dụng nó
         if self.processed_video_path and os.path.exists(self.processed_video_path):
@@ -246,7 +261,8 @@ class VehicleCountingApp:
                     model_path='yolo11n.pt',
                     line_position=self.line_scale.get(),
                     inference_size=self.inference_size,
-                    use_half_precision=True
+                    use_half_precision=(device == 'cuda'),
+                    inference_stride=self.inference_stride
                 )
             except Exception as e:
                 messagebox.showerror("Lỗi", f"Không thể tải model!\n{str(e)}")
@@ -254,6 +270,7 @@ class VehicleCountingApp:
         else:
             # Cập nhật cài đặt hiệu năng
             self.counter.inference_size = self.inference_size
+            self.counter.inference_stride = self.inference_stride
         
         # Mở video/webcam
         try:
@@ -335,7 +352,8 @@ class VehicleCountingApp:
             last_time = time.time()
             frames_processed = 0
             start_time = time.time()
-            frame_skip_display = max(1, int(30 / self.display_fps))  # Skip frame hiển thị để đạt FPS
+            frame_skip_display = max(1, int(self.frame_skip_display_base / self.display_fps))
+            last_processed_frame = None  # Giữ frame đã suy luận để tái sử dụng khi skip inference
             
             while self.is_running and self.cap.isOpened():
                 current_time = time.time()
@@ -353,7 +371,13 @@ class VehicleCountingApp:
                 
                 # QUAN TRỌNG: Luôn xử lý mọi frame để đếm chính xác
                 if self.counter:
-                    frame = self.counter.process_frame(frame)
+                    # Chỉ chạy inference theo stride để giảm tải CPU
+                    if frames_processed % self.counter.inference_stride == 0 or last_processed_frame is None:
+                        frame = self.counter.process_frame(frame)
+                        last_processed_frame = frame
+                    else:
+                        # Tận dụng kết quả đã suy luận ở frame trước để hiển thị nhanh
+                        frame = last_processed_frame if last_processed_frame is not None else frame
                     self.counter.line_position = self.line_scale.get()
                 
                 # Chỉ hiển thị mỗi N frame để tăng tốc
@@ -366,8 +390,8 @@ class VehicleCountingApp:
                     # Chuyển đổi frame để hiển thị
                     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     
-                    # Resize frame để phù hợp với cửa sổ
-                    display_frame = self.resize_frame(frame_rgb, 1000, 600)
+                    # Resize frame để phù hợp với cửa sổ (phóng to hơn)
+                    display_frame = self.resize_frame(frame_rgb, 1280, 720)
                     
                     # Chuyển đổi sang ImageTk
                     image = Image.fromarray(display_frame)
