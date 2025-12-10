@@ -51,7 +51,7 @@ class VehicleCountingApp:
         title_label.pack(pady=20)
         
         # Nút chọn video
-        btn_video = tk.Button(control_frame, text="📹 Chọn Video", 
+        btn_video = tk.Button(control_frame, text="📹 Chọn video", 
                              command=self.select_video,
                              bg='#4CAF50', fg='white',
                              font=('Arial', 12), 
@@ -59,14 +59,14 @@ class VehicleCountingApp:
                              width=20, height=2)
         btn_video.pack(pady=10)
         
-        # Nút sử dụng Webcam
-        btn_webcam = tk.Button(control_frame, text="📷 Sử dụng Webcam", 
-                              command=self.use_webcam,
-                              bg='#2196F3', fg='white',
-                              font=('Arial', 12), 
-                              relief=tk.RAISED, bd=3,
-                              width=20, height=2)
-        btn_webcam.pack(pady=10)
+        # # Nút sử dụng Webcam
+        # btn_webcam = tk.Button(control_frame, text="📷 Sử dụng Webcam", 
+        #                       command=self.use_webcam,
+        #                       bg='#2196F3', fg='white',
+        #                       font=('Arial', 12), 
+        #                       relief=tk.RAISED, bd=3,
+        #                       width=20, height=2)
+        # btn_webcam.pack(pady=10)
         
         # Nút bắt đầu
         self.btn_start = tk.Button(control_frame, text="▶ Bắt đầu", 
@@ -89,7 +89,7 @@ class VehicleCountingApp:
         self.btn_stop.pack(pady=10)
         
         # Nút reset
-        btn_reset = tk.Button(control_frame, text="🔄 Reset đếm", 
+        btn_reset = tk.Button(control_frame, text="🔄 Reset bộ đếm", 
                              command=self.reset_count,
                              bg='#9E9E9E', fg='white',
                              font=('Arial', 12), 
@@ -98,7 +98,7 @@ class VehicleCountingApp:
         btn_reset.pack(pady=10)
         
         # Nút xử lý video trước (preprocessing)
-        self.btn_preprocess = tk.Button(control_frame, text="⚡ Xử lý video trước", 
+        self.btn_preprocess = tk.Button(control_frame, text="⚡ Xử lý video", 
                                         command=self.preprocess_video,
                                         bg='#9C27B0', fg='white',
                                         font=('Arial', 12), 
@@ -143,7 +143,7 @@ class VehicleCountingApp:
                 bg='#3c3c3c', fg='white', 
                 font=('Arial', 9)).pack(pady=(10, 5))
         
-        self.size_var = tk.StringVar(value="640")
+        self.size_var = tk.StringVar(value="320")
         size_options = [("320 (Nhanh nhất)", "320"), 
                        ("640 (Cân bằng)", "640"),
                        ("960 (Chính xác hơn)", "960")]
@@ -243,7 +243,7 @@ class VehicleCountingApp:
         if self.counter is None:
             try:
                 self.counter = VehicleCounter(
-                    model_path='best.pt',
+                    model_path='yolo11n.pt',
                     line_position=self.line_scale.get(),
                     inference_size=self.inference_size,
                     use_half_precision=True
@@ -414,7 +414,7 @@ class VehicleCountingApp:
         if self.counter is None:
             try:
                 self.counter = VehicleCounter(
-                    model_path='best.pt',
+                    model_path='yolo11n.pt',
                     line_position=self.line_scale.get(),
                     inference_size=self.inference_size,
                     use_half_precision=True
@@ -533,4 +533,3 @@ if __name__ == "__main__":
     app = VehicleCountingApp(root)
     root.protocol("WM_DELETE_WINDOW", app.on_closing)
     root.mainloop()
-

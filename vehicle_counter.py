@@ -6,7 +6,7 @@ import time
 import torch
 
 class VehicleCounter:
-    def __init__(self, model_path='best.pt', line_position=0.7, 
+    def __init__(self, model_path='yolo11n.pt', line_position=0.7, 
                  inference_size=640, use_half_precision=True):
         """
         Khởi tạo hệ thống đếm phương tiện
@@ -254,4 +254,3 @@ class VehicleCounter:
         self.count_down = 0
         self.tracks.clear()
         self.last_update.clear()
-
