@@ -40,9 +40,14 @@ class VehicleCounter:
         self.vehicle_classes = [2, 3, 5, 7]  # COCO classes: car, motorcycle, bus, truck
         self.class_names = {
             2: 'Car',
-            3: 'Motorcycle', 
+            3: 'Motorbike',
             5: 'Bus',
             7: 'Truck'
+        }
+        # Lưu số lượng theo từng loại xe và chiều di chuyển
+        self.class_counts = {
+            cls: {'up': 0, 'down': 0}
+            for cls in self.vehicle_classes
         }
         
     def update_counts(self, results, frame_height, scale_x=1.0, scale_y=1.0):
@@ -111,12 +116,14 @@ class VehicleCounter:
                             # Cho phép một khoảng tolerance để tránh bỏ sót
                             if (last_y < line_y + 10) and center_y > line_y - 10:
                                 self.count_down += 1
+                                self.class_counts[cls]['down'] += 1
                                 self.tracks[track_id]['crossed'] = True
                         elif self.tracks[track_id]['direction'] == 'up':
                             # Đi lên: từ dưới line_y lên trên line_y
                             # Cho phép một khoảng tolerance để tránh bỏ sót
                             if (last_y > line_y - 10) and center_y < line_y + 10:
                                 self.count_up += 1
+                                self.class_counts[cls]['up'] += 1
                                 self.tracks[track_id]['crossed'] = True
         
         # Xóa các track cũ không được cập nhật trong 2 giây
@@ -259,3 +266,25 @@ class VehicleCounter:
         self.count_down = 0
         self.tracks.clear()
         self.last_update.clear()
+        self.class_counts = {
+            cls: {'up': 0, 'down': 0}
+            for cls in self.vehicle_classes
+        }
+
+    def get_class_counts(self):
+        """
+        Trả về số lượng đếm theo từng loại xe.
+        Returns:
+            dict: {class_name: {'up': int, 'down': int, 'total': int}}
+        """
+        summary = {}
+        for cls, counts in self.class_counts.items():
+            name = self.class_names.get(cls, str(cls))
+            up = counts['up']
+            down = counts['down']
+            summary[name] = {
+                'up': up,
+                'down': down,
+                'total': up + down
+            }
+        return summary

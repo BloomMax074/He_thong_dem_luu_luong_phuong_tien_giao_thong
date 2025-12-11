@@ -49,25 +49,50 @@ class VehicleCountingApp:
         main_frame = tk.Frame(self.root, bg='#2b2b2b')
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
         
-        # Frame điều khiển bên trái
-        control_frame = tk.Frame(main_frame, bg='#3c3c3c', width=300)
-        control_frame.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10))
-        control_frame.pack_propagate(False)
+        # Frame điều khiển bên trái + scrollbar để không bị cắt nội dung
+        control_container = tk.Frame(main_frame, bg='#3c3c3c', width=320)
+        control_container.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 10))
+        control_container.pack_propagate(False)
+        
+        control_canvas = tk.Canvas(control_container, bg='#3c3c3c',
+                                   highlightthickness=0)
+        control_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        scrollbar = tk.Scrollbar(control_container, orient="vertical", 
+                                 command=control_canvas.yview)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        control_frame = tk.Frame(control_canvas, bg='#3c3c3c')
+        control_frame.bind(
+            "<Configure>", 
+            lambda e: control_canvas.configure(scrollregion=control_canvas.bbox("all"))
+        )
+        control_canvas.create_window((0, 0), window=control_frame, anchor="nw")
+        control_canvas.configure(yscrollcommand=scrollbar.set)
+        # Cho phép cuộn bằng chuột
+        control_frame.bind_all(
+            "<MouseWheel>", 
+            lambda e: control_canvas.yview_scroll(int(-1 * (e.delta / 120)), "units")
+        )
         
         # Tiêu đề
         title_label = tk.Label(control_frame, text="Điều khiển", 
                                font=('Arial', 16, 'bold'), 
                                bg='#3c3c3c', fg='white')
-        title_label.pack(pady=20)
+        title_label.pack(pady=20, anchor='center')
+        
+        # Tiện ích đặt kích thước nút đồng nhất
+        def style_button(btn):
+            btn.config(width=22, height=2)
         
         # Nút chọn video
         btn_video = tk.Button(control_frame, text="📹 Chọn video", 
                              command=self.select_video,
                              bg='#4CAF50', fg='white',
                              font=('Arial', 12), 
-                             relief=tk.RAISED, bd=3,
-                             width=20, height=2)
-        btn_video.pack(pady=10)
+                             relief=tk.RAISED, bd=3)
+        style_button(btn_video)
+        btn_video.pack(pady=10, anchor='center')
         
         # # Nút sử dụng Webcam
         # btn_webcam = tk.Button(control_frame, text="📷 Sử dụng Webcam", 
@@ -84,9 +109,9 @@ class VehicleCountingApp:
                                    bg='#FF9800', fg='white',
                                    font=('Arial', 12, 'bold'), 
                                    relief=tk.RAISED, bd=3,
-                                   width=20, height=2,
                                    state=tk.DISABLED)
-        self.btn_start.pack(pady=10)
+        style_button(self.btn_start)
+        self.btn_start.pack(pady=10, anchor='center')
         
         # Nút dừng
         self.btn_stop = tk.Button(control_frame, text="⏸ Dừng", 
@@ -94,18 +119,18 @@ class VehicleCountingApp:
                                   bg='#F44336', fg='white',
                                   font=('Arial', 12), 
                                   relief=tk.RAISED, bd=3,
-                                  width=20, height=2,
                                   state=tk.DISABLED)
-        self.btn_stop.pack(pady=10)
+        style_button(self.btn_stop)
+        self.btn_stop.pack(pady=10, anchor='center')
         
         # Nút reset
         btn_reset = tk.Button(control_frame, text="🔄 Reset bộ đếm", 
                              command=self.reset_count,
                              bg='#9E9E9E', fg='white',
                              font=('Arial', 12), 
-                             relief=tk.RAISED, bd=3,
-                             width=20, height=2)
-        btn_reset.pack(pady=10)
+                             relief=tk.RAISED, bd=3)
+        style_button(btn_reset)
+        btn_reset.pack(pady=10, anchor='center')
         
         # Nút xử lý video trước (preprocessing)
         self.btn_preprocess = tk.Button(control_frame, text="⚡ Xử lý video", 
@@ -113,9 +138,9 @@ class VehicleCountingApp:
                                         bg='#9C27B0', fg='white',
                                         font=('Arial', 12), 
                                         relief=tk.RAISED, bd=3,
-                                        width=20, height=2,
                                         state=tk.DISABLED)
-        self.btn_preprocess.pack(pady=10)
+        style_button(self.btn_preprocess)
+        self.btn_preprocess.pack(pady=10, anchor='center')
         
         # Separator
         separator = tk.Frame(control_frame, height=2, bg='#555555')
@@ -161,7 +186,7 @@ class VehicleCountingApp:
             tk.Radiobutton(perf_frame, text=text, variable=self.size_var, 
                           value=value, bg='#3c3c3c', fg='white',
                           selectcolor='#555555', activebackground='#3c3c3c',
-                          activeforeground='white', font=('Arial', 8)).pack(anchor=tk.W, padx=20)
+                          activeforeground='white', font=('Arial', 8)).pack(anchor=tk.W, padx=20, pady=2)
         
         tk.Label(perf_frame, text="FPS hiển thị:", 
                 bg='#3c3c3c', fg='white', 
@@ -175,7 +200,7 @@ class VehicleCountingApp:
             tk.Radiobutton(perf_frame, text=text, variable=self.fps_var, 
                           value=value, bg='#3c3c3c', fg='white',
                           selectcolor='#555555', activebackground='#3c3c3c',
-                          activeforeground='white', font=('Arial', 8)).pack(anchor=tk.W, padx=20)
+                          activeforeground='white', font=('Arial', 8)).pack(anchor=tk.W, padx=20, pady=2)
         
         
         # Hiển thị thông tin
@@ -208,6 +233,12 @@ class VehicleCountingApp:
                                     bg='#1e1e1e', fg='white',
                                     font=('Arial', 12, 'bold'))
         self.stats_label.pack(expand=True)
+        # Thống kê theo loại phương tiện
+        self.class_stats_label = tk.Label(stats_frame,
+                                          text="Car: 0 | Motorbike: 0 | Bus: 0 | Truck: 0",
+                                          bg='#1e1e1e', fg='#B0BEC5',
+                                          font=('Arial', 10))
+        self.class_stats_label.pack(expand=True, pady=(0, 5))
         
     def select_video(self):
         """Chọn file video"""
@@ -336,7 +367,7 @@ class VehicleCountingApp:
                 
                 # Chỉ hiển thị, không xử lý
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                display_frame = self.resize_frame(frame_rgb, 1000, 600)
+                display_frame = self.resize_frame(frame_rgb, 900, 520)
                 image = Image.fromarray(display_frame)
                 photo = ImageTk.PhotoImage(image=image)
                 self.root.after(0, self.update_frame, photo)
@@ -390,8 +421,8 @@ class VehicleCountingApp:
                     # Chuyển đổi frame để hiển thị
                     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     
-                    # Resize frame để phù hợp với cửa sổ (phóng to hơn)
-                    display_frame = self.resize_frame(frame_rgb, 1280, 720)
+                    # Resize frame để phù hợp với cửa sổ (nhỏ hơn để vừa giao diện)
+                    display_frame = self.resize_frame(frame_rgb, 960, 540)
                     
                     # Chuyển đổi sang ImageTk
                     image = Image.fromarray(display_frame)
@@ -542,8 +573,18 @@ class VehicleCountingApp:
                          f"Đi lên: {self.counter.count_up}  |  "
                          f"Đi xuống: {self.counter.count_down}")
             self.stats_label.config(text=stats_text)
+            
+            # Cập nhật thống kê theo loại
+            class_counts = self.counter.get_class_counts()
+            class_stats = []
+            # Giữ thứ tự hiển thị cố định
+            for name in ["Car", "Motorbike", "Bus", "Truck"]:
+                counts = class_counts.get(name, {'total': 0})
+                class_stats.append(f"{name}: {counts['total']}")
+            self.class_stats_label.config(text=" | ".join(class_stats))
         else:
             self.stats_label.config(text="Tổng số phương tiện: 0  |  Đi lên: 0  |  Đi xuống: 0")
+            self.class_stats_label.config(text="Car: 0 | Motorbike: 0 | Bus: 0 | Truck: 0")
         
     def on_closing(self):
         """Xử lý khi đóng cửa sổ"""
