@@ -289,7 +289,7 @@ class VehicleCountingApp:
         if self.counter is None:
             try:
                 self.counter = VehicleCounter(
-                    model_path='models/yolo11n.pt',
+                    model_path='models/train_100.pt',
                     line_position=self.line_scale.get(),
                     inference_size=self.inference_size,
                     use_half_precision=(device == 'cuda'),
@@ -367,7 +367,8 @@ class VehicleCountingApp:
                 
                 # Chỉ hiển thị, không xử lý
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                display_frame = self.resize_frame(frame_rgb, 900, 520)
+                max_w, max_h = self.get_display_limits(frame_rgb)
+                display_frame = self.resize_frame(frame_rgb, max_w, max_h)
                 image = Image.fromarray(display_frame)
                 photo = ImageTk.PhotoImage(image=image)
                 self.root.after(0, self.update_frame, photo)
@@ -421,8 +422,9 @@ class VehicleCountingApp:
                     # Chuyển đổi frame để hiển thị
                     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     
-                    # Resize frame để phù hợp với cửa sổ (nhỏ hơn để vừa giao diện)
-                    display_frame = self.resize_frame(frame_rgb, 960, 540)
+                    # Resize frame để phù hợp với cửa sổ, ưu tiên chiều cao cho video dọc
+                    max_w, max_h = self.get_display_limits(frame_rgb)
+                    display_frame = self.resize_frame(frame_rgb, max_w, max_h)
                     
                     # Chuyển đổi sang ImageTk
                     image = Image.fromarray(display_frame)
@@ -469,7 +471,7 @@ class VehicleCountingApp:
         if self.counter is None:
             try:
                 self.counter = VehicleCounter(
-                    model_path='models/yolo11n.pt',
+                    model_path='models/train_100.pt',
                     line_position=self.line_scale.get(),
                     inference_size=self.inference_size,
                     use_half_precision=True
@@ -546,6 +548,15 @@ class VehicleCountingApp:
                 text="Lỗi xử lý video", fg='#F44336'))
             self.root.after(0, lambda: self.btn_preprocess.config(state=tk.NORMAL))
         
+    def get_display_limits(self, frame):
+        """Xác định kích thước hiển thị tối đa dựa trên tỷ lệ khung hình."""
+        h, w = frame.shape[:2]
+        # Video dọc được phép cao hơn để không bị quá bé
+        if h > w:
+            return 960, 900
+        # Video ngang dùng kích thước mặc định
+        return 960, 540
+
     def resize_frame(self, frame, max_width, max_height):
         """Resize frame để phù hợp với kích thước hiển thị"""
         height, width = frame.shape[:2]

@@ -6,7 +6,7 @@ import time
 import torch
 
 class VehicleCounter:
-    def __init__(self, model_path='models/yolo11n.pt', line_position=0.7, 
+    def __init__(self, model_path='models/train_100.pt', line_position=0.7, 
                  inference_size=640, use_half_precision=True,
                  inference_stride=1):
         """
